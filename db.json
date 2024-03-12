@@ -1,0 +1,40 @@
+{
+  "users": [
+    {
+      "id": "1094",
+      "email": "test@gmail.com",
+      "password": "abcd1234"
+    },
+    {
+      "id": "956b",
+      "email": "aagsgasg@gmail.com",
+      "password": "fsasgasgasg"
+    },
+    {
+      "id": "354c",
+      "email": "aagsgasg@gmail.com",
+      "password": "fsasgasgasg",
+      "token": "valid_token"
+    },
+    {
+      "id": "1d26",
+      "email": "aagsgasg@gmail.com",
+      "password": "fsasgasgasg",
+      "token": "valid_token"
+    },
+    {
+      "id": "891c",
+      "email": "aagsgasg@gmail.com",
+      "password": "fsasgasgasg",
+      "token": "valid_token"
+    },
+    {
+      "id": "3232",
+      "email": "test1@gmail.com",
+      "password": "abcd1234",
+      "token": "valid_token"
+    }
+  ],
+  "posts": [],
+  "comments": []
+}
