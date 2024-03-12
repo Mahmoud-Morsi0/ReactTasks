@@ -16,12 +16,13 @@ import {
   collection,
   Timestamp,
   getDocs,
-  setDoc,
   updateDoc,
   doc,
+  deleteDoc,
 } from "firebase/firestore";
 import { db } from "./services/firebase.js";
 import { useSelector } from "react-redux";
+import { GoTrash } from "react-icons/go";
 
 function App() {
   const [tasks, setTasks] = useState();
@@ -39,6 +40,7 @@ function App() {
   const userInfo = useSelector((state) => state.user.userInfo);
   const [editMode, setEditMode] = useState(false);
   const [selectedTask, setSelectedTask] = useState();
+  const [taskStatus, setTaskStatus] = useState();
 
   const ArrayOfDays = eachDayOfInterval({
     start: new Date(selectedYear, selectedMonth - 1, 1),
@@ -78,11 +80,12 @@ function App() {
     setTasksAndDates(daysAndTasks);
   };
 
-  const addTaskHandler = async () => {
+  const addOrEditTaskHandler = async () => {
     if (editMode) {
       console.log({ selectedTask });
       await updateDoc(doc(db, "tasks", selectedTask.id), {
         title: taskTitle,
+        status: taskStatus,
       });
     } else {
       await addDoc(collection(db, "tasks"), {
@@ -94,6 +97,12 @@ function App() {
         title: taskTitle,
       });
     }
+    document.getElementById("add_task_modal").close();
+    callTasksHandler();
+  };
+
+  const deleteTaskHandler = async () => {
+    await deleteDoc(doc(db, "tasks", selectedTask.id));
     document.getElementById("add_task_modal").close();
     callTasksHandler();
   };
@@ -121,22 +130,60 @@ function App() {
     }
   }, [tasks, selectedMonth]);
 
+  const getStatusColors = (status) => {
+    switch (status) {
+      case "in-progress":
+        return "bg-[#EA80FC]";
+      case "pending":
+        return "bg-[#FED653]";
+      case "done":
+        return "bg-[#4BD963]";
+    }
+  };
+
   return (
     <>
       <dialog id="add_task_modal" className="modal">
         <div className="modal-box">
-          <h3 className="font-bold text-lg">
-            {selectedTask ? selectedTask.title : "Add new task!"}
-          </h3>
+          <div className="flex justify-between items-center">
+            <h3 className="font-bold text-lg">
+              {selectedTask ? selectedTask.title : "Add new task!"}
+            </h3>
+            {editMode && (
+              <button
+                className="btn btn-error btn-outline"
+                onClick={deleteTaskHandler}
+              >
+                Delete
+                <GoTrash />
+              </button>
+            )}
+          </div>
+
           <input
             type="text"
-            placeholder="Type here"
+            placeholder="Drink water..."
             className="input input-bordered input-primary w-full max-w-xs mt-4"
             value={taskTitle}
             onChange={(e) => setTaskTitle(e.target.value)}
           />
+          {editMode && (
+            <select
+              className="select select-primary w-full max-w-xs mt-4"
+              value={taskStatus}
+              onChange={(e) => setTaskStatus(e.target.value)}
+            >
+              <option disabled selected>
+                Task Status
+              </option>
+              <option value="pending">Pending</option>
+              <option value="in-progress">In Progress</option>
+              <option value="done">Done</option>
+            </select>
+          )}
+
           <div className="modal-action">
-            <button className="btn btn-primary" onClick={addTaskHandler}>
+            <button className="btn btn-primary" onClick={addOrEditTaskHandler}>
               {editMode ? "Edit" : "Add"}
             </button>
             <form method="dialog">
@@ -197,10 +244,13 @@ function App() {
                         setTaskDate(day);
                         setTaskTitle(task.title);
                         setSelectedTask(task);
+                        setTaskStatus(task.status);
                         document.getElementById("add_task_modal").showModal();
                       }}
                       key={task.id}
-                      className="p-2 my-2 rounded border border-white"
+                      className={`p-2 my-2 rounded-full shadow-sm shadow-purple-400 ${getStatusColors(
+                        task.status
+                      )}`}
                     >
                       {task.title}
                     </div>
