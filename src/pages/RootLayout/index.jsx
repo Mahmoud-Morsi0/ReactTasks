@@ -30,7 +30,7 @@ const RootLayout = () => {
   return (
     <>
       {isAuthenticated && <Header />}
-      <Outlet />;
+      <Outlet />
     </>
   );
 };

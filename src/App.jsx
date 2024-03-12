@@ -11,7 +11,15 @@ import {
   isSameDay,
 } from "date-fns";
 import { GoArrowLeft, GoArrowRight } from "react-icons/go";
-import { addDoc, collection, Timestamp, getDocs } from "firebase/firestore";
+import {
+  addDoc,
+  collection,
+  Timestamp,
+  getDocs,
+  setDoc,
+  updateDoc,
+  doc,
+} from "firebase/firestore";
 import { db } from "./services/firebase.js";
 import { useSelector } from "react-redux";
 
@@ -29,6 +37,8 @@ function App() {
   const [selectedYear, setSelectedYear] = useState(currentYear);
   const daysInMonth = getDaysInMonth(selectedDay);
   const userInfo = useSelector((state) => state.user.userInfo);
+  const [editMode, setEditMode] = useState(false);
+  const [selectedTask, setSelectedTask] = useState();
 
   const ArrayOfDays = eachDayOfInterval({
     start: new Date(selectedYear, selectedMonth - 1, 1),
@@ -69,14 +79,21 @@ function App() {
   };
 
   const addTaskHandler = async () => {
-    await addDoc(collection(db, "tasks"), {
-      createdBy: userInfo.email,
-      createdById: userInfo.id,
-      createdAt: Timestamp.fromDate(new Date(taskDate)),
-      status: "pending",
-      teamID: "",
-      title: taskTitle,
-    });
+    if (editMode) {
+      console.log({ selectedTask });
+      await updateDoc(doc(db, "tasks", selectedTask.id), {
+        title: taskTitle,
+      });
+    } else {
+      await addDoc(collection(db, "tasks"), {
+        createdBy: userInfo.email,
+        createdById: userInfo.id,
+        createdAt: Timestamp.fromDate(new Date(taskDate)),
+        status: "pending",
+        teamID: "",
+        title: taskTitle,
+      });
+    }
     document.getElementById("add_task_modal").close();
     callTasksHandler();
   };
@@ -108,7 +125,9 @@ function App() {
     <>
       <dialog id="add_task_modal" className="modal">
         <div className="modal-box">
-          <h3 className="font-bold text-lg">Add new task!</h3>
+          <h3 className="font-bold text-lg">
+            {selectedTask ? selectedTask.title : "Add new task!"}
+          </h3>
           <input
             type="text"
             placeholder="Type here"
@@ -118,7 +137,7 @@ function App() {
           />
           <div className="modal-action">
             <button className="btn btn-primary" onClick={addTaskHandler}>
-              Add
+              {editMode ? "Edit" : "Add"}
             </button>
             <form method="dialog">
               <button className="btn">Close</button>
@@ -158,8 +177,12 @@ function App() {
                     ? "border-blue-900 bg-green-500 text-black"
                     : "border-white text-white"
                 }`}
-                onClick={() => {
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setTaskTitle("");
                   setTaskDate(day);
+                  setEditMode(false);
+                  setSelectedTask(null);
                   document.getElementById("add_task_modal").showModal();
                 }}
               >
@@ -168,12 +191,34 @@ function App() {
                   tasks.length > 0 &&
                   tasks.map((task) => (
                     <div
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditMode(true);
+                        setTaskDate(day);
+                        setTaskTitle(task.title);
+                        setSelectedTask(task);
+                        document.getElementById("add_task_modal").showModal();
+                      }}
                       key={task.id}
                       className="p-2 my-2 rounded border border-white"
                     >
                       {task.title}
                     </div>
                   ))}
+                <div className="text-right">
+                  <button
+                    className="btn btn-primary m-auto"
+                    onClick={() => {
+                      setEditMode(false);
+                      setTaskTitle("");
+                      setTaskDate(day);
+                      setSelectedTask(null);
+                      document.getElementById("add_task_modal").showModal();
+                    }}
+                  >
+                    Add task
+                  </button>
+                </div>
               </div>
             );
           })}
