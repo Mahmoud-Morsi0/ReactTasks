@@ -16,9 +16,11 @@ const RootLayout = () => {
     if (user) {
       //User
     } else {
-      dispatch(setToken(null));
-      dispatch(setUserInfo(null));
-      navigate("/login");
+      if (isAuthenticated) {
+        dispatch(setToken(null));
+        dispatch(setUserInfo(null));
+        navigate("/login");
+      }
     }
   });
 
