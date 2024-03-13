@@ -135,7 +135,6 @@ function App() {
   }, []);
 
   useEffect(() => {
-    console.log("delete")
       mergeTasksToDates();
   }, [tasks, selectedMonth]);
 
