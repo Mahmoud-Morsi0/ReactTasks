@@ -25,7 +25,7 @@ import { useSelector } from "react-redux";
 import { GoTrash } from "react-icons/go";
 
 function App() {
-  const [tasks, setTasks] = useState();
+  const [tasks, setTasks] = useState([]);
   const [taskTitle, setTaskTitle] = useState("");
   const [taskDate, setTaskDate] = useState("");
   const [tasksAndDates, setTasksAndDates] = useState();
@@ -67,11 +67,14 @@ function App() {
     let daysAndTasks = [];
     for (let day of ArrayOfDays) {
       let dayTasks = [];
-      for (let task of tasks) {
-        if (isSameDay(day, task.createdAtDate)) {
-          dayTasks.push(task);
+      
+        for (let task of tasks) {
+          if (isSameDay(day, task.createdAtDate)) {
+            dayTasks.push(task);
+          }
         }
-      }
+
+    
       daysAndTasks.push({
         day,
         tasks: dayTasks,
@@ -107,10 +110,17 @@ function App() {
     callTasksHandler();
   };
 
+
   const callTasksHandler = async () => {
     let _tasks = [];
     const querySnapshot = await getDocs(collection(db, "tasks"));
+    if (querySnapshot.empty) {
+      setTasks(_tasks);
+      return;
+    }
+
     querySnapshot.forEach((doc) => {
+      console.log({ doc: doc.id });
       _tasks.push({
         id: doc.id,
         ...doc.data(),
@@ -118,26 +128,25 @@ function App() {
       });
       setTasks(_tasks);
     });
-  };
+  }
 
   useEffect(() => {
     callTasksHandler();
   }, []);
 
   useEffect(() => {
-    if (tasks && tasks.length > 0) {
+    console.log("delete")
       mergeTasksToDates();
-    }
   }, [tasks, selectedMonth]);
 
   const getStatusColors = (status) => {
     switch (status) {
       case "in-progress":
-        return "bg-[#EA80FC]";
+        return "bg-[#2563eb]";
       case "pending":
         return "bg-[#FED653]";
       case "done":
-        return "bg-[#4BD963]";
+        return "bg-[#16a34a]";
     }
   };
 
@@ -162,7 +171,7 @@ function App() {
 
           <input
             type="text"
-            placeholder="Drink water..."
+            placeholder="Add Task..."
             className="input input-bordered input-primary w-full max-w-xs mt-4"
             value={taskTitle}
             onChange={(e) => setTaskTitle(e.target.value)}
@@ -257,7 +266,7 @@ function App() {
                   ))}
                 <div className="text-right">
                   <button
-                    className="btn btn-primary m-auto"
+                    className="btn btn-primary h-3 w-25 m-auto"
                     onClick={() => {
                       setEditMode(false);
                       setTaskTitle("");
